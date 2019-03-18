@@ -51,6 +51,25 @@ const createDevServerConfig = require('../config/webpackDevServer.config');
 const useYarn = fs.existsSync(paths.yarnLockFile);
 const isInteractive = process.stdout.isTTY;
 
+//////////
+// @trifera-begin: parse flavor out of command line options
+
+let argv = process.argv.slice(2);
+
+let flavor;
+const flavorFlagIx = argv.indexOf('--flavor');
+if (flavorFlagIx >= 0) {
+  flavor = argv[flavorFlagIx + 1]
+  if (flavor === undefined) {
+    throw 'flavor flag is specified but no flavor is given';
+  }
+  argv = argv.slice(0, flavorFlagIx).concat(argv.slice(flavorFlagIx + 2));
+}
+process.env.TRIFERA_FLAVOR = flavor;
+
+// @trifera-end
+//////////
+
 // Warn and crash if required files are missing
 if (!checkRequiredFiles([paths.appHtml, paths.appIndexJs])) {
   process.exit(1);
@@ -91,7 +110,7 @@ checkBrowsers(paths.appPath, isInteractive)
       // We have not found a port.
       return;
     }
-    const config = configFactory('development');
+    const config = configFactory('development', flavor);
     const protocol = process.env.HTTPS === 'true' ? 'https' : 'http';
     const appName = require(paths.appPackageJson).name;
     const useTypeScript = fs.existsSync(paths.appTsConfig);

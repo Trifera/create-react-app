@@ -59,8 +59,28 @@ if (!checkRequiredFiles([paths.appHtml, paths.appIndexJs])) {
   process.exit(1);
 }
 
+// Process CLI arguments
+const argv = process.argv.slice(2);
+
+//////////
+// @trifera-begin: parse flavor out of command line options
+
+let flavor;
+const flavorFlagIx = argv.indexOf('--flavor');
+if (flavorFlagIx >= 0) {
+  flavor = argv[flavorFlagIx + 1]
+  if (flavor === undefined) {
+    throw 'flavor flag is specified but no flavor is given';
+  }
+  argv = argv.slice(0, flavorFlagIx).concat(argv.slice(flavorFlagIx + 2));
+}
+process.env.TRIFERA_FLAVOR = flavor;
+
+// @trifera-end
+//////////
+
 // Generate configuration
-const config = configFactory('production');
+const config = configFactory('production', flavor);
 
 // We require that you explicitly set browsers and do not fall back to
 // browserslist defaults.
@@ -78,7 +98,7 @@ checkBrowsers(paths.appPath, isInteractive)
     // Merge with the public folder
     copyPublicFolder();
     // Start the webpack build
-    return build(previousFileSizes);
+    return build(previousFileSizes, flavor);
   })
   .then(
     ({ stats, previousFileSizes, warnings }) => {
@@ -135,7 +155,7 @@ checkBrowsers(paths.appPath, isInteractive)
   });
 
 // Create the production build and print the deployment instructions.
-function build(previousFileSizes) {
+function build(previousFileSizes, flavor) {
   // We used to support resolving modules according to `NODE_PATH`.
   // This now has been deprecated in favor of jsconfig/tsconfig.json
   // This lets you use absolute paths in imports inside large monorepos:
@@ -148,7 +168,8 @@ function build(previousFileSizes) {
     console.log();
   }
 
-  console.log('Creating an optimized production build...');
+  const flavorText = `${(flavor || "no").toUpperCase()} flavor`
+  console.log(`Creating an optimized production build (${flavorText})...`);
 
   const compiler = webpack(config);
   return new Promise((resolve, reject) => {
