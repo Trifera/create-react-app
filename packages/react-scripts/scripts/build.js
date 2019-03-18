@@ -74,7 +74,9 @@ if (flavorFlagIx >= 0) {
   }
   argv = argv.slice(0, flavorFlagIx).concat(argv.slice(flavorFlagIx + 2));
 }
-process.env.TRIFERA_FLAVOR = flavor;
+if (flavor !== undefined) {
+  process.env.TRIFERA_FLAVOR = flavor;
+}
 
 // @trifera-end
 //////////

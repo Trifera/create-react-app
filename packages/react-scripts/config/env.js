@@ -69,6 +69,9 @@ process.env.NODE_PATH = (process.env.NODE_PATH || '')
 const REACT_APP = /^REACT_APP_/i;
 
 function getClientEnvironment(publicUrl) {
+  // @trifera-begin
+  const { TRIFERA_FLAVOR } = process.env;
+  // @trifera-end
   const raw = Object.keys(process.env)
     .filter(key => REACT_APP.test(key))
     .reduce(
@@ -86,7 +89,7 @@ function getClientEnvironment(publicUrl) {
         // images into the `src` and `import` them in code to get their paths.
         PUBLIC_URL: publicUrl,
         // @trifera-begin
-        TRIFERA_FLAVOR: process.env.TRIFERA_FLAVOR,
+        ...(TRIFERA_FLAVOR && { TRIFERA_FLAVOR }),
         // @trifera-end
       }
     );
